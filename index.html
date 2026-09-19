@@ -137,11 +137,12 @@
     <select id="student-name" onchange="renderMyReflections()"></select>
 
     <label>きょうか（教科）:</label>
-    <select id="student-subject" onchange="updateDynamicPrompts()"></select>
+    <select id="student-subject"></select>
 
-    <!-- 学年・教科ごとに動的生成される入力エリア -->
-    <div id="dynamic-prompts-container" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
-      <!-- JavaScriptで動的作成 -->
+    <!-- ふりかえり入力エリア（一律「ふりかえり」1つに統一） -->
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
+      <label class="prompt-label" style="margin-top: 0;">ふりかえり</label>
+      <textarea id="student-reflection-text" rows="5" placeholder="きょうの がくしゅうや かつどうを ふりかえって 書いてみよう。"></textarea>
     </div>
 
     <!-- 画像添付エリア -->
@@ -194,7 +195,7 @@
         <button class="tab-btn" id="tab-btn-single" onclick="switchAddTab('single')">👤 1人ずつ登録</button>
       </div>
 
-      <!-- 一括登録フォーム（学年・組をプルダウンで指定） -->
+      <!-- 一括登録フォーム -->
       <div id="add-bulk-area">
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <div style="flex: 1;">
@@ -229,7 +230,7 @@
         <button class="btn btn-primary" onclick="addStudentsBulk()">指定した学級へ一括登録</button>
       </div>
 
-      <!-- 個別登録フォーム（学年・組もプルダウンで選択） -->
+      <!-- 個別登録フォーム -->
       <div id="add-single-area" class="hidden">
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <select id="new-grade" style="margin-bottom: 0;">
@@ -248,7 +249,7 @@
             <option value="3">3組</option>
             <option value="4">4組</option>
             <option value="5">5組</option>
-            <option value="6組">6組</option>
+            <option value="6">6組</option>
           </select>
           <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)" style="margin-bottom: 0;">
         </div>
@@ -325,71 +326,6 @@
 
   <script>
     const SUBJECTS = ["国語", "算数", "生活", "理科", "社会", "音楽", "図工", "体育", "家庭", "外国語", "道徳", "総合", "特別活動", "その他"];
-
-    const PROMPTS_BY_STAGE = {
-      "low": {
-        "国語": [
-          { label: "どんなことを しましたか。", placeholder: "例：お話を読んで、すきな場面を書いた。" },
-          { label: "自分の かんがえや ことばで くふうしたところは どこですか。", placeholder: "例：気持ちが伝わるように声の大きさをかえた。" }
-        ],
-        "算数": [
-          { label: "どんな もんだいに チャレンジしましたか。", placeholder: "例：たし算とひき算の計算。" },
-          { label: "どのように かんがえて ときましたか。", placeholder: "例：ブロックをつかってかんがえた。" }
-        ],
-        "生活": [
-          { label: "どんな たんけんや かつどうを しましたか。", placeholder: "例：がっこうの はるを さがした。" },
-          { label: "はっけんしたことや たのしかったことは 何ですか。", placeholder: "例：きれいなおはなを たくさん見つけた。" }
-        ],
-        "DEFAULT": [
-          { label: "どんなことを しましたか。", placeholder: "例：きょうの勉強でがんばったこと。" },
-          { label: "たのしかったことや できたことは 何ですか。", placeholder: "例：上手に書けてうれしかった。" }
-        ]
-      },
-      "mid": {
-        "国語": [
-          { label: "どんな学習（活動）を しましたか。", placeholder: "例：登場人物の気持ちの変化を読み取った。" },
-          { label: "自分の考えを 伝えるために 工夫したことは 何ですか。", placeholder: "例：理由を書いて分かりやすくした。" }
-        ],
-        "算数": [
-          { label: "どんな 問題に取り組みましたか。", placeholder: "例：割り算の筆算の計算。" },
-          { label: "解き方の 工夫や、気づいた規則性は ありますか。", placeholder: "例：九九を使ってスムーズに計算できた。" }
-        ],
-        "理科": [
-          { label: "どんな 実験や 観察を しましたか。", placeholder: "例：虫めがねで昆虫の体を観察した。" },
-          { label: "実験や観察から 分かったことは 何ですか。", placeholder: "例：足の位置や体のつくりが分かった。" }
-        ],
-        "社会": [
-          { label: "どんなことについて 調べたり 学びましたか。", placeholder: "例：警察署や消防署の働き。" },
-          { label: "新しく 分かったことや おどろいたことは 何ですか。", placeholder: "例：24時間交代でまちを守っていること。" }
-        ],
-        "DEFAULT": [
-          { label: "どんな課題や活動に取り組みましたか。", placeholder: "例：グループで話し合ってまとめた。" },
-          { label: "工夫したことや 友達のよい考えは 何ですか。", placeholder: "例：〇〇さんの発表の組み立て方が参考になった。" }
-        ]
-      },
-      "high": {
-        "国語": [
-          { label: "本時の学習課題と、取り組んだ内容は何ですか。", placeholder: "例：筆者の主張と根拠の関係を捉え、意見をまとめた。" },
-          { label: "表現や説得力を高めるために、どのような工夫をしましたか。", placeholder: "例：具体的な事例を引用して根拠を明確にした。" }
-        ],
-        "算数": [
-          { label: "本時で扱った問題や学習のねらいは何ですか。", placeholder: "例：立体の体積の求め方を公式化する。" },
-          { label: "どのように見通しを立て、どのような筋道で解決しましたか。", placeholder: "例：既習の直方体の形に分けて計算した。" }
-        ],
-        "理科": [
-          { label: "行った検証実験（観察）の仮説と結果は何ですか。", placeholder: "例：振り子の条件を変えて往復時間を調べた。" },
-          { label: "結果から考察できたことや、新たな課題は何ですか。", placeholder: "例：振れ幅に関わらず、糸の長さで時間が決まることが分かった。" }
-        ],
-        "社会": [
-          { label: "調べたテーマと、収集した情報・資料は何ですか。", placeholder: "例：歴史上の人物の働きと社会の変化。" },
-          { label: "資料から読み取ったことや、自分の考えの深まりは何ですか。", placeholder: "例：現代の暮らしの基礎がこの時代にできていると実感した。" }
-        ],
-        "DEFAULT": [
-          { label: "本時の課題に対し、どのような見通しを持って取り組みましたか。", placeholder: "例：目標から逆算してステップごとに進めた。" },
-          { label: "自己の変容（新しく得た視点や次回への課題）は何ですか。", placeholder: "例：視点を変えることで課題解決の糸口が見えた。" }
-        ]
-      }
-    };
 
     let roster = JSON.parse(localStorage.getItem('app_roster')) || [
       { id: 1, grade: "1", class: "1", name: "さとう たろう" },
@@ -473,7 +409,6 @@
 
     function onGradeChange() {
       updateStudentClassOptions();
-      updateDynamicPrompts();
     }
 
     function onClassChange() {
@@ -509,27 +444,6 @@
       renderMyReflections();
     }
 
-    function updateDynamicPrompts() {
-      const gradeStr = document.getElementById('student-grade').value;
-      const subject = document.getElementById('student-subject').value;
-      const gradeNum = parseInt(gradeStr, 10) || 1;
-
-      let stage = "low";
-      if (gradeNum >= 5) stage = "high";
-      else if (gradeNum >= 3) stage = "mid";
-
-      const stagePrompts = PROMPTS_BY_STAGE[stage] || PROMPTS_BY_STAGE["low"];
-      const prompts = stagePrompts[subject] || stagePrompts["DEFAULT"] || PROMPTS_BY_STAGE["low"]["DEFAULT"];
-
-      const container = document.getElementById('dynamic-prompts-container');
-      container.innerHTML = prompts.map((p) => `
-        <div>
-          <label class="prompt-label">${p.label}</label>
-          <textarea class="dynamic-input" data-label="${p.label}" rows="3" placeholder="${p.placeholder}"></textarea>
-        </div>
-      `).join('');
-    }
-
     /* 画像プレビュー＆圧縮・Base64変換処理 */
     function previewImage(event) {
       const file = event.target.files[0];
@@ -539,10 +453,9 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          // 容量削減のためリサイズ処理
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          const maxDimension = 800; // 最大幅/高さを800pxに抑える
+          const maxDimension = 800;
           let width = img.width;
           let height = img.height;
 
@@ -562,7 +475,7 @@
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          currentBase64Image = canvas.toDataURL('image/jpeg', 0.7); // 画質70%で圧縮
+          currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
           document.getElementById('image-preview-element').src = currentBase64Image;
           document.getElementById('image-preview-container').classList.remove('hidden');
         };
@@ -607,26 +520,14 @@
 
       if (!name || name === "-") { alert("児童を選択してください。"); return; }
 
-      const inputs = document.querySelectorAll('.dynamic-input');
-      let combinedParts = [];
-      let isEmpty = true;
+      const reflectionText = document.getElementById('student-reflection-text').value.trim();
 
-      inputs.forEach(input => {
-        const val = input.value.trim();
-        const label = input.getAttribute('data-label');
-        if (val) {
-          isEmpty = false;
-          combinedParts.push(`【${label}】${val}`);
-        }
-      });
-
-      if (isEmpty && !currentBase64Image) {
+      if (!reflectionText && !currentBase64Image) {
         alert("ふりかえりの内容または画像を入力してください。");
         return;
       }
 
-      const combinedText = combinedParts.join("\n");
-      const feedback = generateFeedbackMessage(subject, combinedText);
+      const feedback = generateFeedbackMessage(subject, reflectionText);
 
       const newEntry = {
         date: new Date().toLocaleString('ja-JP'),
@@ -634,8 +535,8 @@
         class: cls,
         name: name,
         subject: subject,
-        text: combinedText,
-        image: currentBase64Image, // 画像データを保存
+        text: reflectionText,
+        image: currentBase64Image,
         feedback: feedback
       };
 
@@ -650,7 +551,7 @@
       
       alert("ふりかえりを おくりました！");
       
-      inputs.forEach(input => input.value = "");
+      document.getElementById('student-reflection-text').value = "";
       clearImageInput();
       renderMyReflections();
     }
