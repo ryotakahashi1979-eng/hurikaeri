@@ -163,21 +163,39 @@
       
       <!-- 登録モード切り替えタブ -->
       <div class="tab-container">
-        <button class="tab-btn active" id="tab-btn-bulk" onclick="switchAddTab('bulk')">📋 まとめて登録（一括）</button>
+        <button class="tab-btn active" id="tab-btn-bulk" onclick="switchAddTab('bulk')">📋 学級ごとに一括登録</button>
         <button class="tab-btn" id="tab-btn-single" onclick="switchAddTab('single')">👤 1人ずつ登録</button>
       </div>
 
-      <!-- 一括登録フォーム -->
+      <!-- 一括登録フォーム（学年・組を上部指定） -->
       <div id="add-bulk-area">
-        <p style="font-size: 0.85rem; color: #555; margin-top: 0;">
-          エクセルやテキストからデータをコピーして貼り付けられます。<br>
-          <strong>書き方形式:</strong> <code>学年,組,名前</code> （1行につき1人、カンマまたはタブ区切り）<br>
-          <em>例：</em><br>
-          <code>1,1,青木 たろう</code><br>
-          <code>1,1,井上 はなこ</code>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="flex: 1;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #333;">学年</label>
+            <select id="bulk-grade">
+              <option value="1">1年</option>
+              <option value="2">2年</option>
+              <option value="3">3年</option>
+              <option value="4">4年</option>
+              <option value="5">5年</option>
+              <option value="6">6年</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #333;">組</label>
+            <input type="text" id="bulk-class" placeholder="例: 1" style="margin-top: 5px;">
+          </div>
+        </div>
+
+        <label style="font-size: 0.85rem; font-weight: bold; color: #333;">児童の名前一覧（1行に1人ずつ貼り付け）</label>
+        <p style="font-size: 0.8rem; color: #666; margin: 3px 0 8px 0;">
+          ※エクセルや名簿から名前の列をコピーして貼り付けできます。<br>
+          <em>入力例：</em><br>
+          <code>青木 たろう</code><br>
+          <code>井上 はなこ</code>
         </p>
-        <textarea id="bulk-input" rows="6" placeholder="1,1,青木 たろう&#10;1,1,井上 はなこ&#10;1,1,宇野 じろう"></textarea>
-        <button class="btn btn-primary" onclick="addStudentsBulk()">まとめて追加登録</button>
+        <textarea id="bulk-input" rows="8" placeholder="青木 たろう&#10;井上 はなこ&#10;宇野 じろう"></textarea>
+        <button class="btn btn-primary" onclick="addStudentsBulk()">指定した学級へ一括登録</button>
       </div>
 
       <!-- 個別登録フォーム -->
@@ -614,11 +632,18 @@
       alert("児童を追加しました。");
     }
 
-    // 一括登録処理
+    // 指定学級への一括登録処理
     function addStudentsBulk() {
+      const grade = document.getElementById('bulk-grade').value.trim();
+      const cls = document.getElementById('bulk-class').value.trim();
       const text = document.getElementById('bulk-input').value.trim();
+
+      if (!cls) {
+        alert("組を入力してください（例: 1）");
+        return;
+      }
       if (!text) {
-        alert("貼り付けるデータを入力してください。");
+        alert("児童の名前を入力（または貼り付け）してください。");
         return;
       }
 
@@ -626,21 +651,15 @@
       let count = 0;
 
       lines.forEach(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return;
-
-        // カンマまたはタブで分割
-        let parts = trimmed.split(/,|\t/);
-        
-        if (parts.length >= 3) {
-          const grade = parts[0].replace(/年/g, '').trim();
-          const cls = parts[1].replace(/組/g, '').trim();
-          const name = parts.slice(2).join(' ').trim();
-
-          if (grade && cls && name) {
-            roster.push({ id: Date.now() + Math.random(), grade: grade, class: cls, name: name });
-            count++;
-          }
+        const name = line.trim();
+        if (name) {
+          roster.push({
+            id: Date.now() + Math.random(),
+            grade: grade,
+            class: cls,
+            name: name
+          });
+          count++;
         }
       });
 
@@ -650,9 +669,7 @@
         setupFilterDropdowns();
         setupShokenGradeSelect();
         document.getElementById('bulk-input').value = "";
-        alert(`${count}名の児童を一括追加しました！`);
-      } else {
-        alert("有効なデータが見つかりませんでした。\n「学年,組,名前」の形式で入力されているか確認してください。");
+        alert(`${grade}年${cls}組に ${count}名の児童を一括登録しました！`);
       }
     }
 
@@ -761,7 +778,7 @@
       const selectedClass = document.getElementById('shoken-class-select').value;
       const names = roster.filter(r => r.grade === selectedGrade && r.class === selectedClass);
       const nameSelect = document.getElementById('shoken-name-select');
-      nameSelect.innerHTML = names.length ? names.map(n => `<option value="${n.name}">${n.name}</option>`).join('') : '<option value="">-</option>';
+      nameSelect.innerHTML = names.length ? names.map(n => `<option value="${n.name}">${n.name}</option>`) : '<option value="">-</option>';
       
       loadStudentReflectionsForShoken();
     }
