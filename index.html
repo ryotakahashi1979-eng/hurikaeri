@@ -8,7 +8,7 @@
     body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f6f8; }
     .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
     .hidden { display: none !important; }
-    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px 0; }
     .btn-primary { background: #007bff; color: white; }
     .btn-success { background: #28a745; color: white; }
     .btn-danger { background: #dc3545; color: white; }
@@ -64,6 +64,24 @@
       margin-top: 10px;
       display: block;
     }
+    .tab-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #ddd;
+    }
+    .tab-btn {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-weight: bold;
+      color: #666;
+    }
+    .tab-btn.active {
+      color: #007bff;
+      border-bottom: 3px solid #007bff;
+    }
   </style>
 </head>
 <body>
@@ -83,8 +101,8 @@
       <p style="font-size: 0.9rem; color: #666;">パスワードを入力してください</p>
       <input type="password" id="modal-pass-input" placeholder="••••••••" onkeypress="handleAuthKeyPress(event)">
       <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-        <button class="btn btn-secondary" onclick="closePasswordModal()" style="flex: 1;">キャンセル</button>
-        <button class="btn btn-primary" onclick="submitTeacherPassword()" style="flex: 1;">解除</button>
+        <button class="btn btn-secondary" onclick="closePasswordModal()" style="flex: 1; margin-right: 5px;">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitTeacherPassword()" style="flex: 1; margin-left: 5px;">解除</button>
       </div>
     </div>
   </div>
@@ -132,24 +150,49 @@
 
     <!-- パスワード変更エリア -->
     <div class="card" style="background-color: #fff8e1;">
-      <h3>🔒 先生用パスワードの設定・変更</h3>
+      <h3 style="margin-top:0;">🔒 先生用パスワードの設定・変更</h3>
       <div style="display: flex; gap: 10px; align-items: center;">
         <input type="password" id="change-pass-input" placeholder="新しいパスワードを入力" style="margin-bottom: 0;">
-        <button class="btn btn-primary" onclick="changeTeacherPassword()" style="white-space: nowrap;">パスワード変更</button>
+        <button class="btn btn-primary" onclick="changeTeacherPassword()" style="white-space: nowrap;">変更</button>
       </div>
     </div>
 
     <!-- 名簿管理機能 -->
     <div class="card">
-      <h3>1. 児童名簿の登録・管理</h3>
-      <div style="display: flex; gap: 10px;">
-        <input type="text" id="new-grade" placeholder="学年 (例: 1)">
-        <input type="text" id="new-class" placeholder="組 (例: 1)">
-        <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)">
+      <h3 style="margin-top:0;">1. 児童名簿の登録・管理</h3>
+      
+      <!-- 登録モード切り替えタブ -->
+      <div class="tab-container">
+        <button class="tab-btn active" id="tab-btn-bulk" onclick="switchAddTab('bulk')">📋 まとめて登録（一括）</button>
+        <button class="tab-btn" id="tab-btn-single" onclick="switchAddTab('single')">👤 1人ずつ登録</button>
       </div>
-      <button class="btn btn-primary" onclick="addStudent()">児童を追加</button>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+      <!-- 一括登録フォーム -->
+      <div id="add-bulk-area">
+        <p style="font-size: 0.85rem; color: #555; margin-top: 0;">
+          エクセルやテキストからデータをコピーして貼り付けられます。<br>
+          <strong>書き方形式:</strong> <code>学年,組,名前</code> （1行につき1人、カンマまたはタブ区切り）<br>
+          <em>例：</em><br>
+          <code>1,1,青木 たろう</code><br>
+          <code>1,1,井上 はなこ</code>
+        </p>
+        <textarea id="bulk-input" rows="6" placeholder="1,1,青木 たろう&#10;1,1,井上 はなこ&#10;1,1,宇野 じろう"></textarea>
+        <button class="btn btn-primary" onclick="addStudentsBulk()">まとめて追加登録</button>
+      </div>
+
+      <!-- 個別登録フォーム -->
+      <div id="add-single-area" class="hidden">
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="new-grade" placeholder="学年 (例: 1)">
+          <input type="text" id="new-class" placeholder="組 (例: 1)">
+          <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)">
+        </div>
+        <button class="btn btn-primary" onclick="addStudent()">児童を追加</button>
+      </div>
+
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <h4 style="margin: 0;">登録済み児童一覧</h4>
         <button class="btn btn-danger" onclick="clearAllStudents()">⚠️ 全員を削除</button>
       </div>
@@ -164,7 +207,7 @@
 
     <!-- ふりかえり一覧・絞り込み機能 -->
     <div class="card">
-      <h3>2. ふりかえり一覧・自動フィードバック確認</h3>
+      <h3 style="margin-top:0;">2. ふりかえり一覧・自動フィードバック確認</h3>
       <div style="display: flex; gap: 10px;">
         <select id="filter-grade" onchange="renderReflections()"><option value="">すべての学年</option></select>
         <select id="filter-class" onchange="renderReflections()"><option value="">すべての組</option></select>
@@ -181,7 +224,7 @@
 
     <!-- 所見文自動作成機能 -->
     <div class="card" style="background-color: #f0f7ff;">
-      <h3>📝 3. 通知表の所見文作成アシスト</h3>
+      <h3 style="margin-top:0;">📝 3. 通知表の所見文作成アシスト</h3>
       
       <label>対象の児童を選択:</label>
       <div class="dropdown-group">
@@ -218,9 +261,7 @@
   <script>
     const SUBJECTS = ["国語", "算数", "生活", "理科", "社会", "音楽", "図工", "体育", "家庭", "外国語", "道徳", "総合", "特別活動", "その他"];
 
-    // 学年区分×教科ごとの設問マッピング
     const PROMPTS_BY_STAGE = {
-      // --- 低学年（1・2年） ---
       "low": {
         "国語": [
           { label: "どんなことを しましたか。", placeholder: "例：お話を読んで、すきな場面を書いた。" },
@@ -239,7 +280,6 @@
           { label: "たのしかったことや できたことは 何ですか。", placeholder: "例：上手に書けてうれしかった。" }
         ]
       },
-      // --- 中学年（3・4年） ---
       "mid": {
         "国語": [
           { label: "どんな学習（活動）を しましたか。", placeholder: "例：登場人物の気持ちの変化を読み取った。" },
@@ -262,7 +302,6 @@
           { label: "工夫したことや 友達のよい考えは 何ですか。", placeholder: "例：〇〇さんの発表の組み立て方が参考になった。" }
         ]
       },
-      // --- 高学年（5・6年） ---
       "high": {
         "国語": [
           { label: "本時の学習課題と、取り組んだ内容は何ですか。", placeholder: "例：筆者の主張と根拠の関係を捉え、意見をまとめた。" },
@@ -358,8 +397,6 @@
 
     function setupStudentDropdowns() {
       const gradeSelect = document.getElementById('student-grade');
-      
-      // 1年生〜6年生の全選択肢を表示
       gradeSelect.innerHTML = [1,2,3,4,5,6].map(g => `<option value="${g}">${g}年</option>`).join('');
 
       const subjectSelect = document.getElementById('student-subject');
@@ -368,13 +405,11 @@
       onGradeChange();
     }
 
-    // 学年が切り替わったときの処理（問いの即時更新）
     function onGradeChange() {
       updateStudentClassOptions();
       updateDynamicPrompts();
     }
 
-    // 組が切り替わったときの処理
     function onClassChange() {
       updateStudentNameOptions();
     }
@@ -408,7 +443,6 @@
       renderMyReflections();
     }
 
-    // 学年と教科に応じて動的設問を生成
     function updateDynamicPrompts() {
       const gradeStr = document.getElementById('student-grade').value;
       const subject = document.getElementById('student-subject').value;
@@ -546,6 +580,20 @@
       `).join('');
     }
 
+    function switchAddTab(tab) {
+      if (tab === 'bulk') {
+        document.getElementById('add-bulk-area').classList.remove('hidden');
+        document.getElementById('add-single-area').classList.add('hidden');
+        document.getElementById('tab-btn-bulk').classList.add('active');
+        document.getElementById('tab-btn-single').classList.remove('active');
+      } else {
+        document.getElementById('add-bulk-area').classList.add('hidden');
+        document.getElementById('add-single-area').classList.remove('hidden');
+        document.getElementById('tab-btn-bulk').classList.remove('active');
+        document.getElementById('tab-btn-single').classList.add('active');
+      }
+    }
+
     function addStudent() {
       const grade = document.getElementById('new-grade').value.trim();
       const cls = document.getElementById('new-class').value.trim();
@@ -564,6 +612,48 @@
       setupFilterDropdowns();
       setupShokenGradeSelect();
       alert("児童を追加しました。");
+    }
+
+    // 一括登録処理
+    function addStudentsBulk() {
+      const text = document.getElementById('bulk-input').value.trim();
+      if (!text) {
+        alert("貼り付けるデータを入力してください。");
+        return;
+      }
+
+      const lines = text.split('\n');
+      let count = 0;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        // カンマまたはタブで分割
+        let parts = trimmed.split(/,|\t/);
+        
+        if (parts.length >= 3) {
+          const grade = parts[0].replace(/年/g, '').trim();
+          const cls = parts[1].replace(/組/g, '').trim();
+          const name = parts.slice(2).join(' ').trim();
+
+          if (grade && cls && name) {
+            roster.push({ id: Date.now() + Math.random(), grade: grade, class: cls, name: name });
+            count++;
+          }
+        }
+      });
+
+      if (count > 0) {
+        localStorage.setItem('app_roster', JSON.stringify(roster));
+        renderRoster();
+        setupFilterDropdowns();
+        setupShokenGradeSelect();
+        document.getElementById('bulk-input').value = "";
+        alert(`${count}名の児童を一括追加しました！`);
+      } else {
+        alert("有効なデータが見つかりませんでした。\n「学年,組,名前」の形式で入力されているか確認してください。");
+      }
     }
 
     function deleteStudent(index) {
@@ -661,7 +751,7 @@
       const selectedGrade = document.getElementById('shoken-grade-select').value;
       const classes = [...new Set(roster.filter(r => r.grade === selectedGrade).map(r => r.class))].sort((a,b) => parseInt(a) - parseInt(b));
       const classSelect = document.getElementById('shoken-class-select');
-      classSelect.innerHTML = classes.length ? classes.map(c => `<option value="${c}">${c}組</option>`).join('') : '<option value="">-</option>';
+      classSelect.innerHTML = classes.length ? classes.map(c => `<option value="${c}">${c}組</option>`) : '<option value="">-</option>';
       
       updateShokenNameOptions();
     }
