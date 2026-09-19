@@ -194,12 +194,12 @@
         <button class="tab-btn" id="tab-btn-single" onclick="switchAddTab('single')">👤 1人ずつ登録</button>
       </div>
 
-      <!-- 一括登録フォーム（学年・組を上部指定） -->
+      <!-- 一括登録フォーム（学年・組をプルダウンで指定） -->
       <div id="add-bulk-area">
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
           <div style="flex: 1;">
             <label style="font-size: 0.85rem; font-weight: bold; color: #333;">学年</label>
-            <select id="bulk-grade">
+            <select id="bulk-grade" style="margin-top: 5px;">
               <option value="1">1年</option>
               <option value="2">2年</option>
               <option value="3">3年</option>
@@ -210,7 +210,14 @@
           </div>
           <div style="flex: 1;">
             <label style="font-size: 0.85rem; font-weight: bold; color: #333;">組</label>
-            <input type="text" id="bulk-class" placeholder="例: 1" style="margin-top: 5px;">
+            <select id="bulk-class" style="margin-top: 5px;">
+              <option value="1">1組</option>
+              <option value="2">2組</option>
+              <option value="3">3組</option>
+              <option value="4">4組</option>
+              <option value="5">5組</option>
+              <option value="6">6組</option>
+            </select>
           </div>
         </div>
 
@@ -222,12 +229,28 @@
         <button class="btn btn-primary" onclick="addStudentsBulk()">指定した学級へ一括登録</button>
       </div>
 
-      <!-- 個別登録フォーム -->
+      <!-- 個別登録フォーム（学年・組もプルダウンで選択） -->
       <div id="add-single-area" class="hidden">
-        <div style="display: flex; gap: 10px;">
-          <input type="text" id="new-grade" placeholder="学年 (例: 1)">
-          <input type="text" id="new-class" placeholder="組 (例: 1)">
-          <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <select id="new-grade" style="margin-bottom: 0;">
+            <option value="">学年を選択</option>
+            <option value="1">1年</option>
+            <option value="2">2年</option>
+            <option value="3">3年</option>
+            <option value="4">4年</option>
+            <option value="5">5年</option>
+            <option value="6">6年</option>
+          </select>
+          <select id="new-class" style="margin-bottom: 0;">
+            <option value="">組を選択</option>
+            <option value="1">1組</option>
+            <option value="2">2組</option>
+            <option value="3">3組</option>
+            <option value="4">4組</option>
+            <option value="5">5組</option>
+            <option value="6組">6組</option>
+          </select>
+          <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)" style="margin-bottom: 0;">
         </div>
         <button class="btn btn-primary" onclick="addStudent()">児童を追加</button>
       </div>
@@ -276,7 +299,7 @@
         </div>
         <div>
           <label style="font-size: 0.85rem; color: #555;">組</label>
-          <select id="shoken-class-select" onchange="updateShokenNameOptions()"></select>
+          <select id="shoken-class-select" onchange="updateShokenClassOptions()"></select>
         </div>
         <div>
           <label style="font-size: 0.85rem; color: #555;">名前</label>
@@ -699,7 +722,7 @@
       const cls = document.getElementById('new-class').value.trim();
       const name = document.getElementById('new-name').value.trim();
 
-      if (!grade || !cls || !name) { alert("学年・組・名前をすべて入力してください。"); return; }
+      if (!grade || !cls || !name) { alert("学年・組・名前をすべて選択・入力してください。"); return; }
 
       roster.push({ id: Date.now(), grade: grade, class: cls, name: name });
       localStorage.setItem('app_roster', JSON.stringify(roster));
@@ -720,7 +743,7 @@
       const text = document.getElementById('bulk-input').value.trim();
 
       if (!cls) {
-        alert("組を入力してください（例: 1）");
+        alert("組を選択してください。");
         return;
       }
       if (!text) {
