@@ -82,6 +82,21 @@
       color: #007bff;
       border-bottom: 3px solid #007bff;
     }
+    
+    /* 画像添付プレビュー用スタイル */
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+    }
+    .table-img {
+      max-width: 80px;
+      max-height: 80px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -127,6 +142,18 @@
     <!-- 学年・教科ごとに動的生成される入力エリア -->
     <div id="dynamic-prompts-container" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
       <!-- JavaScriptで動的作成 -->
+    </div>
+
+    <!-- 画像添付エリア -->
+    <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ffe082;">
+      <label style="font-weight: bold; color: #b78103;">📷 しゃしんを つける（任意）</label>
+      <p style="font-size: 0.8rem; color: #666; margin: 3px 0 8px 0;">ノートや さくひんの しゃしんを とって のせることができます。</p>
+      <input type="file" id="student-image" accept="image/*" onchange="previewImage(event)">
+      <div id="image-preview-container" class="hidden">
+        <img id="image-preview-element" class="image-preview" src="" alt="プレビュー">
+        <br>
+        <button class="btn btn-danger" style="padding: 3px 8px; font-size: 0.8rem;" onclick="clearImageInput()">しゃしんを けす</button>
+      </div>
     </div>
 
     <button class="btn btn-success" onclick="submitReflection()">送信する</button>
@@ -189,10 +216,7 @@
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #333;">児童の名前一覧（1行に1人ずつ貼り付け）</label>
         <p style="font-size: 0.8rem; color: #666; margin: 3px 0 8px 0;">
-          ※エクセルや名簿から名前の列をコピーして貼り付けできます。<br>
-          <em>入力例：</em><br>
-          <code>青木 たろう</code><br>
-          <code>井上 はなこ</code>
+          ※エクセルや名簿から名前の列をコピーして貼り付けできます。
         </p>
         <textarea id="bulk-input" rows="8" placeholder="青木 たろう&#10;井上 はなこ&#10;宇野 じろう"></textarea>
         <button class="btn btn-primary" onclick="addStudentsBulk()">指定した学級へ一括登録</button>
@@ -234,7 +258,7 @@
       
       <table>
         <thead>
-          <tr><th>日付</th><th>所属</th><th>名前</th><th>教科</th><th>ふりかえり内容</th><th>自動フィードバック</th></tr>
+          <tr><th>日付</th><th>所属</th><th>名前</th><th>教科</th><th>ふりかえり内容</th><th>画像</th><th>自動フィードバック</th></tr>
         </thead>
         <tbody id="reflection-list"></tbody>
       </table>
@@ -350,6 +374,7 @@
       { id: 3, grade: "5", class: "1", name: "すずき はなこ" }
     ];
     let reflections = JSON.parse(localStorage.getItem('app_reflections')) || [];
+    let currentBase64Image = ""; // 選択された画像を保持する一時変数
 
     function getTeacherPassword() {
       return localStorage.getItem('teacher_password') || "1234";
@@ -482,6 +507,54 @@
       `).join('');
     }
 
+    /* 画像プレビュー＆圧縮・Base64変換処理 */
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // 容量削減のためリサイズ処理
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const maxDimension = 800; // 最大幅/高さを800pxに抑える
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDimension) {
+              height *= maxDimension / width;
+              width = maxDimension;
+            }
+          } else {
+            if (height > maxDimension) {
+              width *= maxDimension / height;
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentBase64Image = canvas.toDataURL('image/jpeg', 0.7); // 画質70%で圧縮
+          document.getElementById('image-preview-element').src = currentBase64Image;
+          document.getElementById('image-preview-container').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearImageInput() {
+      document.getElementById('student-image').value = "";
+      document.getElementById('image-preview-element').src = "";
+      document.getElementById('image-preview-container').classList.add('hidden');
+      currentBase64Image = "";
+    }
+
     function generateFeedbackMessage(subject, text) {
       const positiveEncouragements = [
         "すばらしいふりかえりですね！その気持ちを大切に、次回もがんばりましょう！✨",
@@ -524,8 +597,8 @@
         }
       });
 
-      if (isEmpty) {
-        alert("ふりかえりの内容を入力してください。");
+      if (isEmpty && !currentBase64Image) {
+        alert("ふりかえりの内容または画像を入力してください。");
         return;
       }
 
@@ -539,15 +612,23 @@
         name: name,
         subject: subject,
         text: combinedText,
+        image: currentBase64Image, // 画像データを保存
         feedback: feedback
       };
 
       reflections.push(newEntry);
-      localStorage.setItem('app_reflections', JSON.stringify(reflections));
+      
+      try {
+        localStorage.setItem('app_reflections', JSON.stringify(reflections));
+      } catch(e) {
+        alert("保存容量がいっぱいです。不要なデータを削除するか、画像のサイズを小さくしてください。");
+        return;
+      }
       
       alert("ふりかえりを おくりました！");
       
       inputs.forEach(input => input.value = "");
+      clearImageInput();
       renderMyReflections();
     }
 
@@ -577,6 +658,7 @@
           <div class="my-history-item">
             <small style="color: #666;">${e.date} 【${e.subject}】</small>
             <p style="margin: 5px 0; white-space: pre-wrap;"><strong>ふりかえり:</strong>\n${e.text}</p>
+            ${e.image ? `<img src="${e.image}" class="image-preview" style="max-height:150px; display:block;" onclick="window.open(this.src)">` : ''}
             <p style="margin: 5px 0; color: #2e7d32; font-size: 0.9rem;"><strong>AIメッセージ:</strong> ${e.feedback}</p>
           </div>
         `).join('');
@@ -632,7 +714,6 @@
       alert("児童を追加しました。");
     }
 
-    // 指定学級への一括登録処理
     function addStudentsBulk() {
       const grade = document.getElementById('bulk-grade').value.trim();
       const cls = document.getElementById('bulk-class').value.trim();
@@ -751,6 +832,7 @@
           <td>${r.name}</td>
           <td>${r.subject || '-'}</td>
           <td style="white-space: pre-wrap;">${r.text}</td>
+          <td>${r.image ? `<img src="${r.image}" class="table-img" onclick="window.open(this.src)" title="クリックで拡大">` : '-'}</td>
           <td style="color: #2e7d32; font-size: 0.9rem;">${r.feedback || '-'}</td>
         </tr>
       `).join('');
