@@ -2,913 +2,221 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ふりかえり</title>
+  <title>さんすう じしゅうアプリ</title>
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f6f8; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .hidden { display: none !important; }
-    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin: 5px 0; }
-    .btn-primary { background: #007bff; color: white; }
-    .btn-success { background: #28a745; color: white; }
-    .btn-danger { background: #dc3545; color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-    .btn-large { font-size: 1.2rem; padding: 15px 30px; }
-    select, input, textarea { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #eee; }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 350px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-    .feedback-box {
-      background: #e8f5e9;
-      border: 1px solid #c8e6c9;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 15px;
-    }
-    .my-history-item {
-      background: #f9f9f9;
-      border-left: 4px solid #4caf50;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-    .dropdown-group {
-      display: flex;
-      gap: 10px;
-    }
-    .dropdown-group div {
-      flex: 1;
-    }
-    .prompt-label {
-      font-weight: bold;
-      color: #0056b3;
-      margin-top: 10px;
-      display: block;
-    }
-    .tab-container {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      border-bottom: 2px solid #ddd;
-    }
-    .tab-btn {
-      padding: 8px 16px;
-      cursor: pointer;
-      border: none;
-      background: none;
-      font-weight: bold;
-      color: #666;
-    }
-    .tab-btn.active {
-      color: #007bff;
-      border-bottom: 3px solid #007bff;
-    }
-    
-    .image-preview {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 6px;
-      margin-top: 10px;
-      border: 1px solid #ddd;
-    }
-    .table-img {
-      max-width: 80px;
-      max-height: 80px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    /* ローディングオーバーレイ */
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      font-weight: bold;
-      color: #007bff;
-    }
-    .spinner {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #007bff;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 15px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    body { font-family: sans-serif; background: #eef9ff; padding: 20px; text-align: center; }
+    .card { background: white; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    button { background: #4caf50; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin: 8px; }
+    button:hover { background: #45a049; }
+    select, input { font-size: 16px; padding: 8px; margin: 8px; border-radius: 6px; border: 1px solid #ccc; }
+    .hidden { display: none; }
+    .explain-box { background: #fffde7; border: 2px solid #fff59d; padding: 15px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
+    .mark { font-size: 60px; font-weight: bold; height: 70px; line-height: 70px; }
+    .correct { color: #e53935; }
+    .incorrect { color: #1e88e5; }
   </style>
 </head>
 <body>
 
-  <!-- ローディング表示 -->
-  <div id="loading" class="loading-overlay hidden">
-    <div class="spinner"></div>
-    <div>🤖 AIせんせいが かんがえています...</div>
+<div class="card">
+  <!-- 1. トップ画面 -->
+  <div id="screen-top">
+    <h1>さんすう じしゅうアプリ</h1>
+    <button onclick="showScreen('screen-user')">児童用（じどうよう）</button>
   </div>
 
-  <!-- 1. 初期選択画面 -->
-  <div id="screen-welcome" class="card" style="text-align: center;">
-    <h2>ふりかえりアプリ</h2>
-    <p>どちらかを選択してください</p>
-    <button class="btn btn-primary btn-large" onclick="showStudentScreen()">児童用</button>
-    <button class="btn btn-secondary btn-large" onclick="openPasswordModal()">先生用</button>
+  <!-- 2. 児童情報選択画面 -->
+  <div id="screen-user" class="hidden">
+    <h2>がくねん・くみ・なまえ</h2>
+    <div>
+      <select id="grade">
+        <option value="1">1ねんせい</option>
+        <option value="2">2ねんせい</option>
+        <option value="3" selected>3年生</option>
+      </select>
+      <select id="class-num">
+        <option value="1">1くみ</option>
+        <option value="2">2くみ</option>
+      </select>
+    </div>
+    <div>
+      <input type="text" id="student-name" placeholder="なまえを入力" value="たろう">
+    </div>
+    <button onclick="goToUnitScreen()">つぎへ</button>
   </div>
 
-  <!-- パスワード入力用モーダル -->
-  <div id="modal-password" class="modal-overlay hidden">
-    <div class="modal-content">
-      <h3 style="margin-top:0;">🔒 先生用パスワード</h3>
-      <p style="font-size: 0.9rem; color: #666;">パスワードを入力してください</p>
-      <input type="password" id="modal-pass-input" placeholder="••••••••" onkeypress="handleAuthKeyPress(event)">
-      <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-        <button class="btn btn-secondary" onclick="closePasswordModal()" style="flex: 1; margin-right: 5px;">キャンセル</button>
-        <button class="btn btn-primary" onclick="submitTeacherPassword()" style="flex: 1; margin-left: 5px;">解除</button>
-      </div>
+  <!-- 3. 単元選択画面 -->
+  <div id="screen-unit" class="hidden">
+    <h2>たんげんを えらぼう</h2>
+    <div id="unit-buttons"></div>
+  </div>
+
+  <!-- 4. 学習・問題画面 -->
+  <div id="screen-study" class="hidden">
+    <div id="explain-area" class="explain-box">
+      <h3>💡 きほんの まとめ</h3>
+      <p id="explain-text"></p>
+    </div>
+
+    <div id="quiz-area">
+      <p id="question-num" style="font-weight:bold; color:#666;"></p>
+      <h2 id="question-text"></h2>
+      <input type="number" id="user-answer" placeholder="こたえ">
+      <br>
+      <button onclick="checkAnswer()">こたえる</button>
+      <div id="result-mark" class="mark"></div>
     </div>
   </div>
+</div>
 
-  <!-- 2. 児童用画面 -->
-  <div id="screen-student" class="card hidden">
-    <button class="btn btn-secondary" onclick="showWelcome()">← 最初に戻る</button>
-    <h3>【児童用】ふりかえり</h3>
+<script>
+  // APIキーを設定（未設定の場合は下のローカル問題集で動作します）
+  const API_KEY = "YOUR_GEMINI_API_KEY";
+
+  // 静的な問題データ（APIが使えない場合のバックアップ）
+  const fallbackData = {
+    "かけ算のあつまり": {
+      explanation: "1つ分の かず × いくつ分 ＝ ぜんぶの かず になります。計算のじゅんじょを たしかめよう！",
+      questions: [
+        { q: "1ほん 50えんの えんぴつを 4ほん かいました。代金はいくら？", a: 200 },
+        { q: "1はこに 6こ入った クッキーが 3はこ あります。ぜんぶで いくつ？", a: 18 },
+        { q: "8 × 5 の こたえは？", a: 40 }
+      ]
+    },
+    "わり算のきほん": {
+      explanation: "ぜんぶの かず ÷ いくつ分（または1人分）で 計算します。九九をつかって こたえを みつけよう！",
+      questions: [
+        { q: "12この あめを 3人に おなじ数ずつ わけると、1人分は いくつ？", a: 4 },
+        { q: "20ページの本を 1日4ページずつ よむと、何日で よみおわる？", a: 5 },
+        { q: "36 ÷ 6 の こたえは？", a: 6 }
+      ]
+    }
+  };
+
+  let currentUnit = "";
+  let currentQuestions = [];
+  let currentIndex = 0;
+
+  // Web Audio API による音の再生
+  function playSound(type) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'correct') {
+      // 正解音（ピンポン♪）
+      osc.frequency.setValueAtTime(660, ctx.currentTime); // ミ
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // ラ
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } else {
+      // 不正解音（ブブー）
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.card > div').forEach(el => el.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function goToUnitScreen() {
+    const name = document.getElementById('student-name').value;
+    if (!name) {
+      alert("なまえを入力してください");
+      return;
+    }
+    const unitDiv = document.getElementById('unit-buttons');
+    unitDiv.innerHTML = "";
     
-    <label>学年:</label>
-    <select id="student-grade" onchange="onGradeChange()"></select>
+    Object.keys(fallbackData).forEach(unit => {
+      const btn = document.createElement('button');
+      btn.innerText = unit;
+      btn.onclick = () => startStudy(unit);
+      unitDiv.appendChild(btn);
+    });
+    showScreen('screen-unit');
+  }
 
-    <label>組:</label>
-    <select id="student-class" onchange="onClassChange()"></select>
-
-    <label>名前:</label>
-    <select id="student-name" onchange="renderMyReflections()"></select>
-
-    <label>きょうか（教科）:</label>
-    <select id="student-subject"></select>
-
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
-      <label class="prompt-label" style="margin-top: 0;">ふりかえり</label>
-      <textarea id="student-reflection-text" rows="5" placeholder="きょうの がくしゅうや かつどうを ふりかえって 書いてみよう。"></textarea>
-    </div>
-
-    <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ffe082;">
-      <label style="font-weight: bold; color: #b78103;">📷 しゃしんを つける（任意）</label>
-      <p style="font-size: 0.8rem; color: #666; margin: 3px 0 8px 0;">ノートや さくひんの しゃしんを とって のせることができます。</p>
-      <input type="file" id="student-image" accept="image/*" onchange="previewImage(event)">
-      <div id="image-preview-container" class="hidden">
-        <img id="image-preview-element" class="image-preview" src="" alt="プレビュー">
-        <br>
-        <button class="btn btn-danger" style="padding: 3px 8px; font-size: 0.8rem;" onclick="clearImageInput()">しゃしんを けす</button>
-      </div>
-    </div>
-
-    <button class="btn btn-success" onclick="submitReflection()">送信する</button>
-
-    <div id="my-feedback-area" class="feedback-box hidden">
-      <h4 style="margin-top:0; color: #2e7d32;">💬 AIせんせいからのメッセージ</h4>
-      <div id="my-latest-feedback"></div>
-    </div>
-
-    <div id="my-history-area" style="margin-top: 20px;">
-      <h4>📜 じぶんの ふりかえりきろく</h4>
-      <div id="my-history-list"></div>
-    </div>
-  </div>
-
-  <!-- 3. 先生用画面 -->
-  <div id="screen-teacher" class="card hidden">
-    <button class="btn btn-secondary" onclick="showWelcome()">← 最初に戻る</button>
-    <h2>【先生用】管理メニュー</h2>
-
-    <!-- Gemini APIキー設定エリア -->
-    <div class="card" style="background-color: #e3f2fd; border: 1px solid #90caf9;">
-      <h3 style="margin-top:0; color: #0d47a1;">🤖 Gemini APIキーの設定</h3>
-      <p style="font-size: 0.85rem; color: #333; margin-bottom: 10px;">
-        Google AI Studioで取得したAPIキーを入力してください。登録すると、AIが一人ひとりのふりかえり本文を読み込み、個別の返信を自動生成します。
-      </p>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <input type="password" id="gemini-api-key-input" placeholder="AIzaSy..." style="margin-bottom: 0;">
-        <button class="btn btn-primary" onclick="saveApiKey()" style="white-space: nowrap;">保存</button>
-      </div>
-      <p id="api-key-status" style="font-size: 0.8rem; margin: 5px 0 0 0; font-weight: bold;"></p>
-    </div>
-
-    <!-- パスワード変更エリア -->
-    <div class="card" style="background-color: #fff8e1;">
-      <h3 style="margin-top:0;">🔒 先生用パスワードの設定・変更</h3>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <input type="password" id="change-pass-input" placeholder="新しいパスワードを入力" style="margin-bottom: 0;">
-        <button class="btn btn-primary" onclick="changeTeacherPassword()" style="white-space: nowrap;">変更</button>
-      </div>
-    </div>
-
-    <!-- 名簿管理機能 -->
-    <div class="card">
-      <h3 style="margin-top:0;">1. 児童名簿の登録・管理</h3>
-      
-      <div class="tab-container">
-        <button class="tab-btn active" id="tab-btn-bulk" onclick="switchAddTab('bulk')">📋 学級ごとに一括登録</button>
-        <button class="tab-btn" id="tab-btn-single" onclick="switchAddTab('single')">👤 1人ずつ登録</button>
-      </div>
-
-      <div id="add-bulk-area">
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <div style="flex: 1;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #333;">学年</label>
-            <select id="bulk-grade" style="margin-top: 5px;">
-              <option value="1">1年</option>
-              <option value="2">2年</option>
-              <option value="3">3年</option>
-              <option value="4">4年</option>
-              <option value="5">5年</option>
-              <option value="6">6年</option>
-            </select>
-          </div>
-          <div style="flex: 1;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #333;">組</label>
-            <select id="bulk-class" style="margin-top: 5px;">
-              <option value="1">1組</option>
-              <option value="2">2組</option>
-              <option value="3">3組</option>
-              <option value="4">4組</option>
-              <option value="5">5組</option>
-              <option value="6組">6組</option>
-            </select>
-          </div>
-        </div>
-
-        <label style="font-size: 0.85rem; font-weight: bold; color: #333;">児童の名前一覧（1行に1人ずつ貼り付け）</label>
-        <textarea id="bulk-input" rows="8" placeholder="青木 たろう&#10;井上 はなこ&#10;宇野 じろう"></textarea>
-        <button class="btn btn-primary" onclick="addStudentsBulk()">指定した学級へ一括登録</button>
-      </div>
-
-      <div id="add-single-area" class="hidden">
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <select id="new-grade" style="margin-bottom: 0;">
-            <option value="">学年を選択</option>
-            <option value="1">1年</option>
-            <option value="2">2年</option>
-            <option value="3">3年</option>
-            <option value="4">4年</option>
-            <option value="5">5年</option>
-            <option value="6">6年</option>
-          </select>
-          <select id="new-class" style="margin-bottom: 0;">
-            <option value="">組を選択</option>
-            <option value="1">1組</option>
-            <option value="2">2組</option>
-            <option value="3">3組</option>
-            <option value="4">4組</option>
-            <option value="5">5組</option>
-            <option value="6組">6組</option>
-          </select>
-          <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)" style="margin-bottom: 0;">
-        </div>
-        <button class="btn btn-primary" onclick="addStudent()">児童を追加</button>
-      </div>
-
-      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-        <h4 style="margin: 0;">登録済み児童一覧</h4>
-        <button class="btn btn-danger" onclick="clearAllStudents()">⚠️ 全員を削除</button>
-      </div>
-
-      <table id="roster-table">
-        <thead>
-          <tr><th>学年</th><th>組</th><th>名前</th><th>操作</th></tr>
-        </thead>
-        <tbody id="roster-list"></tbody>
-      </table>
-    </div>
-
-    <!-- ふりかえり一覧 -->
-    <div class="card">
-      <h3 style="margin-top:0;">2. ふりかえり一覧・自動フィードバック確認</h3>
-      <div style="display: flex; gap: 10px;">
-        <select id="filter-grade" onchange="renderReflections()"><option value="">すべての学年</option></select>
-        <select id="filter-class" onchange="renderReflections()"><option value="">すべての組</option></select>
-        <select id="filter-subject" onchange="renderReflections()"><option value="">すべての教科</option></select>
-      </div>
-      
-      <table>
-        <thead>
-          <tr><th>日付</th><th>所属</th><th>名前</th><th>教科</th><th>ふりかえり内容</th><th>画像</th><th>自動フィードバック</th></tr>
-        </thead>
-        <tbody id="reflection-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 所見文作成機能 -->
-    <div class="card" style="background-color: #f0f7ff;">
-      <h3 style="margin-top:0;">📝 3. 通知表の所見文作成アシスト</h3>
-      
-      <label>対象の児童を選択:</label>
-      <div class="dropdown-group">
-        <div>
-          <label style="font-size: 0.85rem; color: #555;">学年</label>
-          <select id="shoken-grade-select" onchange="updateShokenClassOptions()"></select>
-        </div>
-        <div>
-          <label style="font-size: 0.85rem; color: #555;">組</label>
-          <select id="shoken-class-select" onchange="updateShokenClassOptions()"></select>
-        </div>
-        <div>
-          <label style="font-size: 0.85rem; color: #555;">名前</label>
-          <select id="shoken-name-select" onchange="loadStudentReflectionsForShoken()"></select>
-        </div>
-      </div>
-
-      <label>目標文字数 (字):</label>
-      <input type="number" id="shoken-target-length" value="150" min="50" max="500" step="10">
-
-      <label>参照するふりかえりデータ:</label>
-      <textarea id="shoken-source-text" rows="5" placeholder="児童を選択すると、過去のふりかえり内容がここに集約されます。"></textarea>
-
-      <button class="btn btn-primary" onclick="generateShokenWithAI()">AIで所見文を作成する</button>
-
-      <div id="shoken-result-area" class="shoken-output hidden">
-        <h4>生成された所見文案 (<span id="shoken-char-count">0</span>文字):</h4>
-        <textarea id="shoken-result-text" rows="5"></textarea>
-        <button class="btn btn-secondary" onclick="copyShoken()">文面をコピー</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SUBJECTS = ["国語", "算数", "生活", "理科", "社会", "音楽", "図工", "体育", "家庭", "外国語", "道徳", "総合", "特別活動", "その他"];
-
-    let roster = JSON.parse(localStorage.getItem('app_roster')) || [
-      { id: 1, grade: "1", class: "1", name: "さとう たろう" },
-      { id: 2, grade: "3", class: "1", name: "やまだ じろう" },
-      { id: 3, grade: "5", class: "1", name: "すずき はなこ" }
-    ];
-    let reflections = JSON.parse(localStorage.getItem('app_reflections')) || [];
-    let currentBase64Image = "";
-
-    function getApiKey() {
-      return localStorage.getItem('gemini_api_key') || "";
-    }
-
-    function saveApiKey() {
-      const key = document.getElementById('gemini-api-key-input').value.trim();
-      localStorage.setItem('gemini_api_key', key);
-      updateApiKeyStatus();
-      alert("Gemini APIキーを保存しました。");
-    }
-
-    function updateApiKeyStatus() {
-      const key = getApiKey();
-      const statusEl = document.getElementById('api-key-status');
-      if (key) {
-        statusEl.textContent = "🟢 APIキー設定済み（本物のAI連携が有効です）";
-        statusEl.style.color = "#2e7d32";
-      } else {
-        statusEl.textContent = "🔴 APIキー未設定（固定の簡易メッセージが使われます）";
-        statusEl.style.color = "#c62828";
-      }
-    }
-
-    function getTeacherPassword() {
-      return localStorage.getItem('teacher_password') || "1234";
-    }
-
-    function changeTeacherPassword() {
-      const newPass = document.getElementById('change-pass-input').value.trim();
-      if (!newPass) { alert("新しいパスワードを入力してください。"); return; }
-      localStorage.setItem('teacher_password', newPass);
-      alert("パスワードを変更しました。");
-      document.getElementById('change-pass-input').value = "";
-    }
-
-    function showWelcome() {
-      hideAllScreens();
-      document.getElementById('screen-welcome').classList.remove('hidden');
-    }
-
-    function showStudentScreen() {
-      hideAllScreens();
-      document.getElementById('screen-student').classList.remove('hidden');
-      setupStudentDropdowns();
-    }
-
-    function openPasswordModal() {
-      document.getElementById('modal-pass-input').value = '';
-      document.getElementById('modal-password').classList.remove('hidden');
-      document.getElementById('modal-pass-input').focus();
-    }
-
-    function closePasswordModal() {
-      document.getElementById('modal-password').classList.add('hidden');
-    }
-
-    function handleAuthKeyPress(e) {
-      if (e.key === 'Enter') submitTeacherPassword();
-    }
-
-    function submitTeacherPassword() {
-      const pwd = document.getElementById('modal-pass-input').value.trim();
-      if (pwd === getTeacherPassword()) {
-        closePasswordModal();
-        hideAllScreens();
-        document.getElementById('screen-teacher').classList.remove('hidden');
-        document.getElementById('gemini-api-key-input').value = getApiKey();
-        updateApiKeyStatus();
-        renderRoster();
-        setupFilterDropdowns();
-        renderReflections();
-        setupShokenGradeSelect();
-      } else {
-        alert("パスワードが違います。");
-        document.getElementById('modal-pass-input').value = '';
-      }
-    }
-
-    function hideAllScreens() {
-      document.getElementById('screen-welcome').classList.add('hidden');
-      document.getElementById('screen-student').classList.add('hidden');
-      document.getElementById('screen-teacher').classList.add('hidden');
-    }
-
-    function setupStudentDropdowns() {
-      const gradeSelect = document.getElementById('student-grade');
-      gradeSelect.innerHTML = [1,2,3,4,5,6].map(g => `<option value="${g}">${g}年</option>`).join('');
-
-      const subjectSelect = document.getElementById('student-subject');
-      subjectSelect.innerHTML = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
-
-      onGradeChange();
-    }
-
-    function onGradeChange() { updateStudentClassOptions(); }
-    function onClassChange() { updateStudentNameOptions(); }
-
-    function updateStudentClassOptions() {
-      const selectedGrade = document.getElementById('student-grade').value;
-      const classes = [...new Set(roster.filter(r => r.grade === selectedGrade).map(r => r.class))].sort((a,b) => parseInt(a) - parseInt(b));
-      const classSelect = document.getElementById('student-class');
-      
-      classSelect.innerHTML = classes.length > 0 
-        ? classes.map(c => `<option value="${c}">${c}組</option>`).join('')
-        : '<option value="">-</option>';
-      
-      updateStudentNameOptions();
-    }
-
-    function updateStudentNameOptions() {
-      const selectedGrade = document.getElementById('student-grade').value;
-      const selectedClass = document.getElementById('student-class').value;
-      const names = roster.filter(r => r.grade === selectedGrade && r.class === selectedClass);
-      const nameSelect = document.getElementById('student-name');
-      
-      nameSelect.innerHTML = names.length > 0 
-        ? names.map(n => `<option value="${n.name}">${n.name}</option>`).join('')
-        : '<option value="">-</option>';
-
-      renderMyReflections();
-    }
-
-    function previewImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const maxDimension = 800;
-          let width = img.width, height = img.height;
-
-          if (width > height) {
-            if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
-          } else {
-            if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          currentBase64Image = canvas.toDataURL('image/jpeg', 0.7);
-          document.getElementById('image-preview-element').src = currentBase64Image;
-          document.getElementById('image-preview-container').classList.remove('hidden');
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearImageInput() {
-      document.getElementById('student-image').value = "";
-      document.getElementById('image-preview-element').src = "";
-      document.getElementById('image-preview-container').classList.add('hidden');
-      currentBase64Image = "";
-    }
-
-    /* 🤖 Gemini APIを直接呼び出す関数 */
-    async function fetchGeminiFeedback(grade, subject, text) {
-      const apiKey = getApiKey();
-
-      // APIキーがない場合の固定バックアップメッセージ
-      if (!apiKey) {
-        return `${grade}年生での${subject}のふりかえり、しっかり書けましたね！次もこの調子でがんばりましょう！`;
-      }
-
-      const isLowGrade = parseInt(grade, 10) <= 2;
-      
-      const prompt = `あなたは小学校の優しく温かいAI先生です。
-小学校${grade}年生の児童が、${subject}の授業のふりかえりを書きました。
-
-【児童のふりかえり】
-${text || "(画像のみ提出)"}
-
-【指示】
-1. 児童の頑張りや気づきを褒め、共感する短く温かいメッセージ（2〜3文程度）を作成してください。
-2. ${isLowGrade ? "低学年（1〜2年生）向けなので、すべて『ひらがな』と『カタカナ』のみで分かりやすく書いてください。漢字は使わないでください。" : "発達段階に応じた丁寧で分かりやすい言葉遣いにしてください。"}
-3. 絵文字を1〜2個使って親しみやすくしてください。`;
-
+  async function startStudy(unitName) {
+    currentUnit = unitName;
+    currentIndex = 0;
+    
+    // API呼び出し（設定されていない場合や失敗時はバックアップデータを使用）
+    if (API_KEY && API_KEY !== "YOUR_GEMINI_API_KEY") {
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const prompt = `小学校算数の「${unitName}」について、児童が自学自習するためのデータをJSON形式で出力してください。
+説明文(explanation)と、数値で答えられる練習問題(questions: 質問文qと数値答えa)を3問作成してください。
+形式: {"explanation": "...", "questions": [{"q": "...", "a": 10}, ...]}`;
+        
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
           })
         });
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          return data.candidates[0].content.parts[0].text.trim();
-        } else {
-          return "すばらしい ふりかえりが できましたね！つぎも がんばりましょう！";
-        }
-      } catch (error) {
-        console.error("Gemini API Error:", error);
-        return "ふりかえりを しっかり つたえることが できましたね！";
-      }
-    }
-
-    async function submitReflection() {
-      const grade = document.getElementById('student-grade').value;
-      const cls = document.getElementById('student-class').value;
-      const name = document.getElementById('student-name').value;
-      const subject = document.getElementById('student-subject').value;
-
-      if (!name || name === "-") { alert("児童を選択してください。"); return; }
-
-      const reflectionText = document.getElementById('student-reflection-text').value.trim();
-
-      if (!reflectionText && !currentBase64Image) {
-        alert("ふりかえりの内容または画像を入力してください。");
-        return;
-      }
-
-      // ローディング表示開始
-      document.getElementById('loading').classList.remove('hidden');
-
-      // Gemini APIから返信文を取得
-      const feedback = await fetchGeminiFeedback(grade, subject, reflectionText);
-
-      // ローディング表示終了
-      document.getElementById('loading').classList.add('hidden');
-
-      const newEntry = {
-        date: new Date().toLocaleString('ja-JP'),
-        grade: grade,
-        class: cls,
-        name: name,
-        subject: subject,
-        text: reflectionText,
-        image: currentBase64Image,
-        feedback: feedback
-      };
-
-      reflections.push(newEntry);
-      
-      try {
-        localStorage.setItem('app_reflections', JSON.stringify(reflections));
+        const data = await res.json();
+        const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
+        currentQuestions = parsed.questions;
+        document.getElementById('explain-text').innerText = parsed.explanation;
       } catch(e) {
-        alert("保存容量がいっぱいです。");
-        return;
+        useFallback(unitName);
       }
-      
-      alert("ふりかえりを おくりました！");
-      
-      document.getElementById('student-reflection-text').value = "";
-      clearImageInput();
-      renderMyReflections();
+    } else {
+      useFallback(unitName);
     }
 
-    function renderMyReflections() {
-      const grade = document.getElementById('student-grade').value;
-      const cls = document.getElementById('student-class').value;
-      const name = document.getElementById('student-name').value;
+    showScreen('screen-study');
+    showQuestion();
+  }
 
-      const feedbackArea = document.getElementById('my-feedback-area');
-      const latestFeedback = document.getElementById('my-latest-feedback');
-      const historyList = document.getElementById('my-history-list');
+  function useFallback(unitName) {
+    const data = fallbackData[unitName];
+    currentQuestions = data.questions;
+    document.getElementById('explain-text').innerText = data.explanation;
+  }
 
-      if (!name || name === "-") {
-        feedbackArea.classList.add('hidden');
-        historyList.innerHTML = "<p style='color: #888;'>児童が選択されていません。</p>";
-        return;
-      }
-
-      const myEntries = reflections.filter(r => r.grade === grade && r.class === cls && r.name === name);
-
-      if (myEntries.length > 0) {
-        const lastEntry = myEntries[myEntries.length - 1];
-        latestFeedback.innerHTML = `<p style="margin: 0; font-weight: bold; color: #1b5e20;">${lastEntry.feedback}</p>`;
-        feedbackArea.classList.remove('hidden');
-
-        historyList.innerHTML = myEntries.slice().reverse().map(e => `
-          <div class="my-history-item">
-            <small style="color: #666;">${e.date} 【${e.subject}】</small>
-            <p style="margin: 5px 0; white-space: pre-wrap;"><strong>ふりかえり:</strong>\n${e.text}</p>
-            ${e.image ? `<img src="${e.image}" class="image-preview" style="max-height:150px; display:block;" onclick="window.open(this.src)">` : ''}
-            <p style="margin: 5px 0; color: #2e7d32; font-size: 0.9rem;"><strong>AIメッセージ:</strong> ${e.feedback}</p>
-          </div>
-        `).join('');
-      } else {
-        feedbackArea.classList.add('hidden');
-        historyList.innerHTML = "<p style='color: #888;'>まだふりかえりの提出がありません。</p>";
-      }
+  function showQuestion() {
+    document.getElementById('result-mark').innerText = "";
+    document.getElementById('user-answer').value = "";
+    
+    if (currentIndex < currentQuestions.length) {
+      document.getElementById('question-num').innerText = `だい ${currentIndex + 1} もん`;
+      document.getElementById('question-text').innerText = currentQuestions[currentIndex].q;
+    } else {
+      alert("おめでとうございます！ このたんげんは くりあです！");
+      showScreen('screen-unit');
     }
+  }
 
-    function renderRoster() {
-      const list = document.getElementById('roster-list');
-      list.innerHTML = roster.map((item, index) => `
-        <tr>
-          <td>${item.grade}年</td>
-          <td>${item.class}組</td>
-          <td>${item.name}</td>
-          <td><button class="btn btn-danger" onclick="deleteStudent(${index})">削除</button></td>
-        </tr>
-      `).join('');
+  function checkAnswer() {
+    const userAns = parseFloat(document.getElementById('user-answer').value);
+    const mainAns = currentQuestions[currentIndex].a;
+    const markDiv = document.getElementById('result-mark');
+
+    if (userAns === mainAns) {
+      playSound('correct');
+      markDiv.className = "mark correct";
+      markDiv.innerText = "◯";
+      setTimeout(() => {
+        currentIndex++;
+        showQuestion();
+      }, 1200);
+    } else {
+      playSound('incorrect');
+      markDiv.className = "mark incorrect";
+      markDiv.innerText = "×";
     }
-
-    function switchAddTab(tab) {
-      if (tab === 'bulk') {
-        document.getElementById('add-bulk-area').classList.remove('hidden');
-        document.getElementById('add-single-area').classList.add('hidden');
-        document.getElementById('tab-btn-bulk').classList.add('active');
-        document.getElementById('tab-btn-single').classList.remove('active');
-      } else {
-        document.getElementById('add-bulk-area').classList.add('hidden');
-        document.getElementById('add-single-area').classList.remove('hidden');
-        document.getElementById('tab-btn-bulk').classList.remove('active');
-        document.getElementById('tab-btn-single').classList.add('active');
-      }
-    }
-
-    function addStudent() {
-      const grade = document.getElementById('new-grade').value.trim();
-      const cls = document.getElementById('new-class').value.trim();
-      const name = document.getElementById('new-name').value.trim();
-
-      if (!grade || !cls || !name) { alert("すべて入力してください。"); return; }
-
-      roster.push({ id: Date.now(), grade: grade, class: cls, name: name });
-      localStorage.setItem('app_roster', JSON.stringify(roster));
-      
-      document.getElementById('new-grade').value = "";
-      document.getElementById('new-class').value = "";
-      document.getElementById('new-name').value = "";
-      
-      renderRoster();
-      setupFilterDropdowns();
-      setupShokenGradeSelect();
-      alert("児童を追加しました。");
-    }
-
-    function addStudentsBulk() {
-      const grade = document.getElementById('bulk-grade').value.trim();
-      const cls = document.getElementById('bulk-class').value.trim();
-      const text = document.getElementById('bulk-input').value.trim();
-
-      if (!cls || !text) { alert("組と名前を入力してください。"); return; }
-
-      const lines = text.split('\n');
-      let count = 0;
-
-      lines.forEach(line => {
-        const name = line.trim();
-        if (name) {
-          roster.push({ id: Date.now() + Math.random(), grade: grade, class: cls, name: name });
-          count++;
-        }
-      });
-
-      if (count > 0) {
-        localStorage.setItem('app_roster', JSON.stringify(roster));
-        renderRoster();
-        setupFilterDropdowns();
-        setupShokenGradeSelect();
-        document.getElementById('bulk-input').value = "";
-        alert(`${grade}年${cls}組に ${count}名の児童を一括登録しました！`);
-      }
-    }
-
-    function deleteStudent(index) {
-      const target = roster[index];
-      if (confirm(`「${target.grade}年${target.class}組 ${target.name}」さんを削除しますか？`)) {
-        reflections = reflections.filter(r => !(r.grade === target.grade && r.class === target.class && r.name === target.name));
-        localStorage.setItem('app_reflections', JSON.stringify(reflections));
-
-        roster.splice(index, 1);
-        localStorage.setItem('app_roster', JSON.stringify(roster));
-
-        renderRoster();
-        setupFilterDropdowns();
-        renderReflections();
-        setupShokenGradeSelect();
-      }
-    }
-
-    function clearAllStudents() {
-      if (roster.length === 0) return;
-      const inputPass = prompt("先生用パスワードを入力してください:");
-      if (inputPass !== getTeacherPassword()) { alert("パスワードが違います。"); return; }
-
-      if (confirm("全児童とふりかえりデータを削除しますか？")) {
-        roster = [];
-        reflections = [];
-        localStorage.setItem('app_roster', JSON.stringify(roster));
-        localStorage.setItem('app_reflections', JSON.stringify(reflections));
-
-        renderRoster();
-        setupFilterDropdowns();
-        renderReflections();
-        setupShokenGradeSelect();
-        alert("削除しました。");
-      }
-    }
-
-    function setupFilterDropdowns() {
-      const grades = [...new Set(roster.map(r => r.grade))].sort((a,b) => parseInt(a) - parseInt(b));
-      const classes = [...new Set(roster.map(r => r.class))].sort((a,b) => parseInt(a) - parseInt(b));
-
-      document.getElementById('filter-grade').innerHTML = '<option value="">すべての学年</option>' + grades.map(g => `<option value="${g}">${g}年</option>`).join('');
-      document.getElementById('filter-class').innerHTML = '<option value="">すべての組</option>' + classes.map(c => `<option value="${c}">${c}組</option>`).join('');
-      document.getElementById('filter-subject').innerHTML = '<option value="">すべての教科</option>' + SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
-    }
-
-    function renderReflections() {
-      const selectedGrade = document.getElementById('filter-grade').value;
-      const selectedClass = document.getElementById('filter-class').value;
-      const selectedSubject = document.getElementById('filter-subject').value;
-
-      const filtered = reflections.filter(r => {
-        return (!selectedGrade || r.grade === selectedGrade) &&
-               (!selectedClass || r.class === selectedClass) &&
-               (!selectedSubject || r.subject === selectedSubject);
-      });
-
-      document.getElementById('reflection-list').innerHTML = filtered.map(r => `
-        <tr>
-          <td>${r.date}</td>
-          <td>${r.grade}年${r.class}組</td>
-          <td>${r.name}</td>
-          <td>${r.subject || '-'}</td>
-          <td style="white-space: pre-wrap;">${r.text}</td>
-          <td>${r.image ? `<img src="${r.image}" class="table-img" onclick="window.open(this.src)" title="拡大">` : '-'}</td>
-          <td style="color: #2e7d32; font-size: 0.9rem;">${r.feedback || '-'}</td>
-        </tr>
-      `).join('');
-    }
-
-    function setupShokenGradeSelect() {
-      const grades = [...new Set(roster.map(r => r.grade))].sort((a,b) => parseInt(a) - parseInt(b));
-      document.getElementById('shoken-grade-select').innerHTML = grades.length ? grades.map(g => `<option value="${g}">${g}年</option>`) : '<option value="">-</option>';
-      updateShokenClassOptions();
-    }
-
-    function updateShokenClassOptions() {
-      const selectedGrade = document.getElementById('shoken-grade-select').value;
-      const classes = [...new Set(roster.filter(r => r.grade === selectedGrade).map(r => r.class))].sort((a,b) => parseInt(a) - parseInt(b));
-      document.getElementById('shoken-class-select').innerHTML = classes.length ? classes.map(c => `<option value="${c}">${c}組</option>`) : '<option value="">-</option>';
-      updateShokenNameOptions();
-    }
-
-    function updateShokenNameOptions() {
-      const selectedGrade = document.getElementById('shoken-grade-select').value;
-      const selectedClass = document.getElementById('shoken-class-select').value;
-      const names = roster.filter(r => r.grade === selectedGrade && r.class === selectedClass);
-      document.getElementById('shoken-name-select').innerHTML = names.length ? names.map(n => `<option value="${n.name}">${n.name}</option>`) : '<option value="">-</option>';
-      loadStudentReflectionsForShoken();
-    }
-
-    function loadStudentReflectionsForShoken() {
-      const selectedGrade = document.getElementById('shoken-grade-select').value;
-      const selectedClass = document.getElementById('shoken-class-select').value;
-      const selectedName = document.getElementById('shoken-name-select').value;
-
-      if (!selectedName || selectedName === "-") {
-        document.getElementById('shoken-source-text').value = "（※児童が選択されていません）";
-        return;
-      }
-      
-      const studentReflections = reflections.filter(r => r.grade === selectedGrade && r.class === selectedClass && r.name === selectedName);
-
-      if (studentReflections.length === 0) {
-        document.getElementById('shoken-source-text').value = "（※この児童のふりかえり投稿はまだありません。）";
-      } else {
-        document.getElementById('shoken-source-text').value = studentReflections.map(r => `・[${r.subject}]\n${r.text}`).join('\n\n');
-      }
-    }
-
-    /* 🤖 AIを使った所見文生成 */
-    async function generateShokenWithAI() {
-      const sourceText = document.getElementById('shoken-source-text').value.trim();
-      const targetLength = parseInt(document.getElementById('shoken-target-length').value, 10) || 150;
-      const grade = document.getElementById('shoken-grade-select').value;
-      const apiKey = getApiKey();
-
-      if (!sourceText || sourceText.includes("児童が選択されていません")) {
-        alert("ふりかえり内容を入力してください。");
-        return;
-      }
-
-      document.getElementById('loading').classList.remove('hidden');
-
-      let draft = "";
-
-      if (apiKey) {
-        // Gemini APIで所見文作成
-        const prompt = `あなたは小学校の担任教師です。以下の児童のふりかえり記録を元に、通知表の「所見文」を作成してください。
-
-【児童のふりかえり記録】
-${sourceText}
-
-【条件】
-1. 小学校${grade}年生にふさわしい、具体的で肯定的な表現にしてください。
-2. 文字数は【約${targetLength}文字】に収めてください。
-3. 語尾は「〜見られました。」「〜期待されます。」などの常体（です・ます、あるいは〜である調）で統一してください。
-4. 文章のみを出力し、挨拶や補足コメントは一切含めないでください。`;
-
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-          });
-          const data = await response.json();
-          draft = data.candidates[0].content.parts[0].text.trim();
-        } catch(e) {
-          console.error(e);
-        }
-      }
-
-      // APIキーがない場合またはエラー時のテンプレート生成
-      if (!draft) {
-        draft = `日々の学習に意欲的に取り組み、自分の考えをしっかりと深めることができました。特にふりかえりを通しても自らの成長を客観的に見つめ直す姿勢が見られます。今後のさらなる飛躍が期待されます。`;
-      }
-
-      document.getElementById('loading').classList.add('hidden');
-
-      const resultArea = document.getElementById('shoken-result-area');
-      const resultText = document.getElementById('shoken-result-text');
-      const charCount = document.getElementById('shoken-char-count');
-
-      resultText.value = draft;
-      charCount.textContent = draft.length;
-      resultArea.classList.remove('hidden');
-    }
-
-    function copyShoken() {
-      const resultText = document.getElementById('shoken-result-text');
-      resultText.select();
-      navigator.clipboard.writeText(resultText.value).then(() => {
-        alert("所見文をコピーしました！");
-      });
-    }
-  </script>
+  }
+</script>
 </body>
 </html>
