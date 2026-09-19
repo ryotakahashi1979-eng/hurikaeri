@@ -139,7 +139,7 @@
     <label>きょうか（教科）:</label>
     <select id="student-subject"></select>
 
-    <!-- ふりかえり入力エリア（一律「ふりかえり」1つに統一） -->
+    <!-- ふりかえり入力エリア（一律「ふりかえり」1つ） -->
     <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e9ecef;">
       <label class="prompt-label" style="margin-top: 0;">ふりかえり</label>
       <textarea id="student-reflection-text" rows="5" placeholder="きょうの がくしゅうや かつどうを ふりかえって 書いてみよう。"></textarea>
@@ -217,7 +217,7 @@
               <option value="3">3組</option>
               <option value="4">4組</option>
               <option value="5">5組</option>
-              <option value="6">6組</option>
+              <option value="6組">6組</option>
             </select>
           </div>
         </div>
@@ -249,7 +249,7 @@
             <option value="3">3組</option>
             <option value="4">4組</option>
             <option value="5">5組</option>
-            <option value="6">6組</option>
+            <option value="6組">6組</option>
           </select>
           <input type="text" id="new-name" placeholder="児童名 (例: 山田たろう)" style="margin-bottom: 0;">
         </div>
@@ -491,25 +491,73 @@
       currentBase64Image = "";
     }
 
-    function generateFeedbackMessage(subject, text) {
-      const positiveEncouragements = [
-        "すばらしいふりかえりですね！その気持ちを大切に、次回もがんばりましょう！✨",
-        "しっかり自分の頑張りを言葉にできていて素敵です！👏",
-        "目標に向かって努力したことがよく伝わってきます。大変よくできました！🌟",
-        "自分の挑戦をふりかえることができましたね！これからも応援しています！💪"
-      ];
+    /* 学年・教科・本文の内容に合わせてAIメッセージを生成する関数 */
+    function generateFeedbackMessage(grade, subject, text) {
+      const gradeNum = parseInt(grade, 10) || 1;
+      const isLowGrade = gradeNum <= 2; // 低学年判定（ひらがな多め）
 
-      let specificMsg = "";
-      if (text.includes("むずかし") || text.includes("できなかった") || text.includes("たいへん")) {
-        specificMsg = "難しかったことにも最後まで向き合って素晴らしいです！次はきっともっとできるようになりますよ。";
-      } else if (text.includes("たのしかった") || text.includes("できた") || text.includes("がんばった")) {
-        specificMsg = `${subject}の学習を楽しんで全力で取り組めましたね！その調子です！`;
+      // 1. 本文のキーワードに応じたメッセージパーツ
+      let contentPart = "";
+      if (text.includes("むずかし") || text.includes("できなかった") || text.includes("たいへん") || text.includes("わからな")) {
+        contentPart = isLowGrade 
+          ? "むずかしいことにも あきらめずに チャレンジできたね！そのきもちが とっても すばらしいよ。" 
+          : "難しい課題にも最後まで逃げずに向き合えたことが本当に素晴らしいです！次はきっとできるようになりますよ。";
+      } else if (text.includes("たのしかった") || text.includes("おもしろ") || text.includes("すき")) {
+        contentPart = isLowGrade 
+          ? "たのしく がくしゅうできたのが いちばん！ワクワクしながら かんがえられたね。" 
+          : "楽しみながら主体的に取り組めましたね！楽しむことが成長への一番の近道です。";
+      } else if (text.includes("がんばった") || text.includes("できた") || text.includes("できた！")) {
+        contentPart = isLowGrade 
+          ? "最後まで あきらめずに できましたね！すごいぞ！" 
+          : "最後までしっかりやり遂げることができましたね！達成感を次に活かしていきましょう。";
+      } else if (text.includes("友達") || text.includes("ともだち") || text.includes("みんな") || text.includes("グループ") || text.includes("はん")) {
+        contentPart = isLowGrade 
+          ? "お友達と きょうりょくして がんばれたね！あわせる力は とても たいせつだよ。" 
+          : "周りの友達と協力しながら深め合うことができましたね。チームでの学びが活きています。";
       } else {
-        specificMsg = `${subject}のふりかえりをしっかり書けましたね。毎日の積み重ねが大きな力になります！`;
+        contentPart = isLowGrade 
+          ? "じぶんの がんばったことを しっかり ことばに できたね！" 
+          : "自分の取り組みや考えを客観的にふりかえることができていて素晴らしいです。";
       }
 
-      const randomEncouragement = positiveEncouragements[Math.floor(Math.random() * positiveEncouragements.length)];
-      return `${specificMsg} ${randomEncouragement}`;
+      // 2. 教科に応じたメッセージパーツ
+      let subjectPart = "";
+      switch (subject) {
+        case "国語":
+          subjectPart = isLowGrade ? "ことばを つかって つたえる力が ついてきたね！" : "言葉の表現力や読み取る力が着実に伸びています！";
+          break;
+        case "算数":
+          subjectPart = isLowGrade ? "よく かんがえて たからものを さがすように 解けたね！" : "論理的に順序立てて考え抜く力が身についています！";
+          break;
+        case "理科":
+          subjectPart = isLowGrade ? "はっけんが たくさんあって すてきだな！" : "実験や観察を通して本質に気づく観察眼が見ごとです！";
+          break;
+        case "社会":
+          subjectPart = isLowGrade ? "社会の ふしぎや しくみに きづけたね！" : "社会の仕組みや人々の工夫に着目した視点が素晴らしいです！";
+          break;
+        case "体育":
+          subjectPart = isLowGrade ? "からだを たくさん うごかして めざましいね！" : "めあてに向かって体を動かし、ステップアップできましたね！";
+          break;
+        case "図工":
+        case "音楽":
+          subjectPart = isLowGrade ? "じぶんの かんじたことを 豊かに 表現できたね！" : "感性をフルに使って自分らしい素晴らしい表現ができましたね！";
+          break;
+        default:
+          subjectPart = isLowGrade ? "きょうの がくしゅうも たからものになったね！" : "日々の積み重ねが確実な力となっています！";
+          break;
+      }
+
+      // 3. 学年に応じた締めの励まし
+      let closingPart = "";
+      if (gradeNum <= 2) {
+        closingPart = "これからも この ちょうしで たのしく がんばろう！✨";
+      } else if (gradeNum <= 4) {
+        closingPart = "自分の成長を実感しながら、次もチャレンジしてみよう！👏";
+      } else {
+        closingPart = "高学年として自律した学びができています。自信を持って次の目標へ進んでいきましょう！🌟";
+      }
+
+      return `${contentPart} ${subjectPart} ${closingPart}`;
     }
 
     function submitReflection() {
@@ -527,7 +575,8 @@
         return;
       }
 
-      const feedback = generateFeedbackMessage(subject, reflectionText);
+      // 学年・教科・本文を渡してメッセージを自動生成
+      const feedback = generateFeedbackMessage(grade, subject, reflectionText);
 
       const newEntry = {
         date: new Date().toLocaleString('ja-JP'),
